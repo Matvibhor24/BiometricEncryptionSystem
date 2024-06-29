@@ -16,20 +16,32 @@ function encryptFile(key, fileData, outputFilePath) {
 
     cipher.write(fileData);
     cipher.end();
+    cipher.pipe(output);
 
-    return new Promise((resolve, reject) => {
-        output.on('finish', () => {
-            console.log('File encrypted successfully.');
-            resolve(iv.toString('hex'));
-        });
-        output.on('error', reject);
+    output.on('finish', () => {
+        console.log('File encrypted successfully.');
     });
+
+    return iv.toString('hex');
 }
 
-// Decrypt a file using AES-256-CBC (if needed)
+// Decrypt a file using AES-256-CBC
+function decryptFile(key, ivHex, fileData, outputFilePath) {
+    const iv = Buffer.from(ivHex, 'hex');
+    const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+    const output = fs.createWriteStream(outputFilePath);
+
+    decipher.write(fileData);
+    decipher.end();
+    decipher.pipe(output);
+
+    output.on('finish', () => {
+        console.log('File decrypted successfully.');
+    });
+}
 
 module.exports = {
     generateKeyFromString,
     encryptFile,
-    // Add decryptFile if needed
+    decryptFile
 };

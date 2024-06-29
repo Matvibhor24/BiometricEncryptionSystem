@@ -3,28 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Encryption</title>
+    <title>File Encryption and Decryption</title>
 </head>
 <body>
     <h1>File Encryption</h1>
-    <form id="uploadForm" enctype="multipart/form-data">
-        <input type="file" name="fileToEncrypt" id="fileToEncrypt" />
+    <form id="encryptionForm" enctype="multipart/form-data">
+        <input type="file" name="fileToEncrypt" id="fileToEncrypt" required />
+        <input type="text" name="keyString" id="keyStringEncrypt" placeholder="Enter key" required />
         <button type="button" onclick="encryptFile()">Encrypt File</button>
     </form>
     <div id="encryptionResult"></div>
+
+    <h1>File Decryption</h1>
+    <form id="decryptionForm" enctype="multipart/form-data">
+        <input type="file" name="encryptedFile" id="encryptedFile" required />
+        <input type="text" name="keyString" id="keyStringDecrypt" placeholder="Enter key" required />
+        <input type="text" name="ivHex" id="ivHex" placeholder="Enter IV" required />
+        <button type="button" onclick="decryptFile()">Decrypt File</button>
+    </form>
+    <div id="decryptionResult"></div>
 
     <script>
         async function encryptFile() {
             const fileInput = document.getElementById('fileToEncrypt');
             const file = fileInput.files[0];
+            const keyString = document.getElementById('keyStringEncrypt').value;
 
-            if (!file) {
-                alert('Please select a file to encrypt.');
+            if (!file || !keyString) {
+                alert('Please select a file and enter a key.');
                 return;
             }
 
             const formData = new FormData();
             formData.append('fileToEncrypt', file);
+            formData.append('keyString', keyString);
 
             try {
                 const response = await fetch('/encrypt', {
@@ -37,10 +49,54 @@
                 }
 
                 const result = await response.json();
-                document.getElementById('encryptionResult').innerText = `IV: ${result.ivHex}\nEncrypted File Path: ${result.encryptedFilePath}`;
+                const downloadLink = document.createElement('a');
+                downloadLink.href = result.encryptedFilePath;
+                downloadLink.download = `encrypted-${file.name}`;
+                downloadLink.innerText = 'Download Encrypted File';
+                document.getElementById('encryptionResult').innerHTML = `IV: ${result.ivHex}`;
+                document.getElementById('encryptionResult').appendChild(downloadLink);
             } catch (error) {
                 console.error('Encryption error:', error);
                 document.getElementById('encryptionResult').innerText = 'Encryption failed';
+            }
+        }
+
+        async function decryptFile() {
+            const fileInput = document.getElementById('encryptedFile');
+            const file = fileInput.files[0];
+            const keyString = document.getElementById('keyStringDecrypt').value;
+            const ivHex = document.getElementById('ivHex').value;
+
+            if (!file || !keyString || !ivHex) {
+                alert('Please select a file, enter a key, and provide the IV.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('encryptedFile', file);
+            formData.append('keyString', keyString);
+            formData.append('ivHex', ivHex);
+
+            try {
+                const response = await fetch('/decrypt', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to decrypt file');
+                }
+
+                const result = await response.json();
+                const downloadLink = document.createElement('a');
+                downloadLink.href = result.decryptedFilePath;
+                downloadLink.download = `decrypted-${file.name}`;
+                downloadLink.innerText = 'Download Decrypted File';
+                document.getElementById('decryptionResult').innerHTML = '';
+                document.getElementById('decryptionResult').appendChild(downloadLink);
+            } catch (error) {
+                console.error('Decryption error:', error);
+                document.getElementById('decryptionResult').innerText = 'Decryption failed';
             }
         }
     </script>
