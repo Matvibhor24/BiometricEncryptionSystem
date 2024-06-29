@@ -1,5 +1,4 @@
 // server.js
-
 const express = require('express');
 const fileUpload = require('express-fileupload');
 const path = require('path');
@@ -28,7 +27,7 @@ app.post('/encrypt', async (req, res) => {
 
     try {
         const fileToEncrypt = req.files.fileToEncrypt;
-        const keyString = req.body.keyString; // Replace with your secret key
+        const keyString = req.body.keyString;
         const key = biometricCrypt.generateKeyFromString(keyString);
 
         // Create a unique filename for the encrypted file
@@ -40,7 +39,6 @@ app.post('/encrypt', async (req, res) => {
 
         // Send response with IV and encrypted file path
         res.json({ ivHex, encryptedFileName });
-
     } catch (error) {
         console.error('Encryption error:', error);
         res.status(500).send('Encryption failed');
@@ -55,19 +53,25 @@ app.post('/decrypt', async (req, res) => {
 
     try {
         const fileToDecrypt = req.files.fileToDecrypt;
-        const keyString = req.body.keyString; // Replace with your secret key
-        const ivHex = req.body.ivHex; // IV provided by the user
+        const keyString = req.body.keyString;
+        const ivHex = req.body.ivHex;
+
+        const key = biometricCrypt.generateKeyFromString(keyString);
 
         // Create a unique filename for the decrypted file
         const decryptedFileName = `decrypted-${fileToDecrypt.name}`;
         const decryptedFilePath = path.join(__dirname, 'uploads', decryptedFileName);
 
         // Decrypt the file
-        await biometricCrypt.decryptFile(keyString, ivHex, fileToDecrypt.data, decryptedFilePath);
+        await biometricCrypt.decryptFile(key, ivHex, fileToDecrypt.data, decryptedFilePath);
 
         // Send response with decrypted file path
-        res.sendFile(decryptedFilePath);
-
+        res.download(decryptedFilePath, decryptedFileName, (err) => {
+            if (err) {
+                console.error('Decryption error:', err);
+                res.status(500).send('Decryption failed');
+            }
+        });
     } catch (error) {
         console.error('Decryption error:', error);
         res.status(500).send('Decryption failed');

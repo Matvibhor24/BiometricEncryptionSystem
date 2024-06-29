@@ -1,3 +1,4 @@
+// biometric-crypt.js
 const crypto = require('crypto');
 const fs = require('fs');
 
@@ -9,34 +10,40 @@ function generateKeyFromString(keyString) {
 }
 
 // Encrypt a file using AES-256-CBC
-function encryptFile(key, fileData, outputFilePath) {
-    const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
-    const output = fs.createWriteStream(outputFilePath);
+function encryptFile(key, fileBuffer, outputFilePath) {
+    return new Promise((resolve, reject) => {
+        const iv = crypto.randomBytes(16);
+        const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+        const output = fs.createWriteStream(outputFilePath);
 
-    cipher.write(fileData);
-    cipher.end();
-    cipher.pipe(output);
+        const inputBuffer = Buffer.from(fileBuffer);
 
-    output.on('finish', () => {
-        console.log('File encrypted successfully.');
+        cipher.on('error', reject);
+        output.on('error', reject);
+        output.on('finish', () => resolve(iv.toString('hex')));
+
+        output.write(cipher.update(inputBuffer));
+        output.write(cipher.final());
+        output.end();
     });
-
-    return iv.toString('hex');
 }
 
 // Decrypt a file using AES-256-CBC
-function decryptFile(key, ivHex, fileData, outputFilePath) {
-    const iv = Buffer.from(ivHex, 'hex');
-    const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
-    const output = fs.createWriteStream(outputFilePath);
+function decryptFile(key, ivHex, fileBuffer, outputFilePath) {
+    return new Promise((resolve, reject) => {
+        const iv = Buffer.from(ivHex, 'hex');
+        const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+        const output = fs.createWriteStream(outputFilePath);
 
-    decipher.write(fileData);
-    decipher.end();
-    decipher.pipe(output);
+        const inputBuffer = Buffer.from(fileBuffer);
 
-    output.on('finish', () => {
-        console.log('File decrypted successfully.');
+        decipher.on('error', reject);
+        output.on('error', reject);
+        output.on('finish', resolve);
+
+        output.write(decipher.update(inputBuffer));
+        output.write(decipher.final());
+        output.end();
     });
 }
 
