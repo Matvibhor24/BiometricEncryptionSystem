@@ -3,27 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Encrypt/Decrypt</title>
+    <title>Biometric Encryption System</title>
 </head>
 <body>
-    <h1>File Decryption</h1>
-    <form id="decryptForm" action="/decrypt" method="post" enctype="multipart/form-data">
-        <input type="file" name="encryptedFile" required>
-        <input type="text" name="ivHex" placeholder="IV Hex" required>
-        <input type="text" name="keyString" placeholder="Key String" required>
-        <button type="submit">Decrypt File</button>
-    </form>
+    <h1>Biometric Encryption System</h1>
 
-    <h1>File Encryption</h1>
-    <form id="encryptForm" action="/encrypt" method="post" enctype="multipart/form-data">
-        <input type="file" name="fileToEncrypt" required>
-        <input type="text" name="keyString" placeholder="Key String" required>
+    <!-- Encryption Form -->
+    <h2>Encrypt a File</h2>
+    <form id="encrypt-form" action="/encrypt" method="post" enctype="multipart/form-data">
+        <label for="fileToEncrypt">Select file to encrypt:</label>
+        <input type="file" id="fileToEncrypt" name="fileToEncrypt" required><br><br>
+        
+        <label for="keyStringEncrypt">Enter key string:</label>
+        <input type="text" id="keyStringEncrypt" name="keyString" required><br><br>
+        
         <button type="submit">Encrypt File</button>
     </form>
 
-    <div id="encryptionResult" style="display: none;">
-        <p><strong>IV:</strong> <span id="iv"></span></p>
-        <p><strong>Encrypted File:</strong> <a id="encryptedFileLink" href="#" download>Download</a></p>
+    <div id="encrypt-result" style="display:none;">
+        <h3>Encryption Result</h3>
+        <p>Initialization Vector: <span id="ivHex"></span></p>
+        <p>Download Encrypted File: <a id="encryptedFileLink" href="" download>Download</a></p>
     </div>
+
+    <hr>
+
+    <!-- Decryption Form -->
+    <h2>Decrypt a File</h2>
+    <form id="decrypt-form" action="/decrypt" method="post" enctype="multipart/form-data">
+        <label for="encryptedFile">Select encrypted file:</label>
+        <input type="file" id="encryptedFile" name="encryptedFile" required><br><br>
+        
+        <label for="ivHexDecrypt">Enter initialization vector (IV):</label>
+        <input type="text" id="ivHexDecrypt" name="ivHex" required><br><br>
+        
+        <label for="keyStringDecrypt">Enter key string:</label>
+        <input type="text" id="keyStringDecrypt" name="keyString" required><br><br>
+        
+        <button type="submit">Decrypt File</button>
+    </form>
+
+    <div id="decrypt-result" style="display:none;">
+        <h3>Decryption Result</h3>
+        <p>Download Decrypted File: <a id="decryptedFileLink" href="" download>Download</a></p>
+    </div>
+
+    <script>
+        document.getElementById('encrypt-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+
+            const response = await fetch('/encrypt', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const result = await response.json();
+
+            document.getElementById('ivHex').innerText = result.ivHex;
+            document.getElementById('encryptedFileLink').href = result.encryptedFilePath;
+            document.getElementById('encrypt-result').style.display = 'block';
+        };
+
+        document.getElementById('decrypt-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+
+            const response = await fetch('/decrypt', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+
+            document.getElementById('decryptedFileLink').href = url;
+            document.getElementById('decrypt-result').style.display = 'block';
+        };
+    </script>
 </body>
 </html>

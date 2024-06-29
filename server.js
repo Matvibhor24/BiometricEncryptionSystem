@@ -7,16 +7,15 @@ const biometricCrypt = require('./biometric-crypt');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir);
+}
+
 // Middleware for file uploads
 app.use(fileUpload());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Serve the index.html file
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+app.use(express.static('public'));
 
 // Decrypt endpoint
 app.post('/decrypt', (req, res) => {
@@ -70,9 +69,10 @@ app.post('/encrypt', (req, res) => {
         // Encrypt the file
         const ivHex = biometricCrypt.encryptFile(key, uploadPath, outputFilePath);
 
+        // Respond with the IV and the encrypted file path
         res.json({
             ivHex: ivHex,
-            encryptedFilePath: `uploads/encrypted-${fileToEncrypt.name}`
+            encryptedFilePath: outputFilePath
         });
     });
 });
