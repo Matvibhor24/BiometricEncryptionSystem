@@ -40,6 +40,7 @@ app.post('/encrypt', async (req, res) => {
 
         // Send response with IV and encrypted file path
         res.json({ ivHex, encryptedFileName });
+
     } catch (error) {
         console.error('Encryption error:', error);
         res.status(500).send('Encryption failed');
@@ -55,7 +56,7 @@ app.post('/decrypt', async (req, res) => {
     try {
         const fileToDecrypt = req.files.fileToDecrypt;
         const keyString = req.body.keyString; // Replace with your secret key
-        const ivHex = req.body.ivHex;
+        const ivHex = req.body.ivHex; // IV provided by the user
 
         // Create a unique filename for the decrypted file
         const decryptedFileName = `decrypted-${fileToDecrypt.name}`;
@@ -66,6 +67,7 @@ app.post('/decrypt', async (req, res) => {
 
         // Send response with decrypted file path
         res.sendFile(decryptedFilePath);
+
     } catch (error) {
         console.error('Decryption error:', error);
         res.status(500).send('Decryption failed');
