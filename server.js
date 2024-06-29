@@ -12,9 +12,12 @@ const PORT = process.env.PORT || 3000;
 // Middleware for file uploads
 app.use(fileUpload());
 
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
+
 // Serve index.html as the main page
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Encrypt endpoint

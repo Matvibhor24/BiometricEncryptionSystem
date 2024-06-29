@@ -9,32 +9,35 @@ function generateKeyFromString(keyString) {
 }
 
 // Encrypt a file using AES-256-CBC
-function encryptFile(key, filePath, outputFilePath) {
+async function encryptFile(key, fileData, outputFilePath) {
     const iv = crypto.randomBytes(16);
     const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
-    const input = fs.createReadStream(filePath);
     const output = fs.createWriteStream(outputFilePath);
 
-    input.pipe(cipher).pipe(output);
+    return new Promise((resolve, reject) => {
+        cipher.once('error', reject);
+        output.once('error', reject);
+        output.once('finish', () => resolve(iv.toString('hex')));
 
-    output.on('finish', () => {
-        console.log('File encrypted successfully.');
+        const input = Buffer.from(fileData, 'binary');
+        cipher.write(input);
+        cipher.end();
     });
-
-    return iv.toString('hex');
 }
 
 // Decrypt a file using AES-256-CBC
-function decryptFile(key, ivHex, filePath, outputFilePath) {
+async function decryptFile(key, ivHex, filePath, outputFilePath) {
     const iv = Buffer.from(ivHex, 'hex');
     const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
     const input = fs.createReadStream(filePath);
     const output = fs.createWriteStream(outputFilePath);
 
-    input.pipe(decipher).pipe(output);
+    return new Promise((resolve, reject) => {
+        decipher.once('error', reject);
+        output.once('error', reject);
+        output.once('finish', resolve);
 
-    output.on('finish', () => {
-        console.log('File decrypted successfully.');
+        input.pipe(decipher).pipe(output);
     });
 }
 
