@@ -51,4 +51,27 @@ app.post('/encrypt', (req, res) => {
         return res.status(400).send('No files were uploaded.');
     }
 
-   
+    const fileToEncrypt = req.files.fileToEncrypt;
+    const keyString = req.body.keyString; // The predefined key string
+    const key = biometricCrypt.generateKeyFromString(keyString);
+
+    const uploadPath = path.join(__dirname, 'uploads', fileToEncrypt.name);
+    const outputFilePath = path.join(__dirname, 'uploads', 'encrypted-' + fileToEncrypt.name);
+
+    // Save the uploaded file
+    fileToEncrypt.mv(uploadPath, (err) => {
+        if (err) return res.status(500).send(err);
+
+        // Encrypt the file
+        const ivHex = biometricCrypt.encryptFile(key, uploadPath, outputFilePath);
+
+        res.json({
+            ivHex: ivHex,
+            encryptedFilePath: `uploads/encrypted-${fileToEncrypt.name}`
+        });
+    });
+});
+
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
