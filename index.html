@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Decrypt File</title>
+</head>
+<body>
+    <form action="https://your-app.onrender.com/decrypt" method="post" enctype="multipart/form-data">
+        <label for="encryptedFile">Upload Encrypted File:</label>
+        <input type="file" id="encryptedFile" name="encryptedFile" required><br><br>
+
+        <label for="ivHex">Initialization Vector (IV):</label>
+        <input type="text" id="ivHex" name="ivHex" required><br><br>
+
+        <label for="keyString">Key String:</label>
+        <input type="text" id="keyString" name="keyString" required><br><br>
+
+        <input type="submit" value="Decrypt File">
+    </form>
+</body>
+</html>
