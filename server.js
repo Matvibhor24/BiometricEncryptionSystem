@@ -46,6 +46,32 @@ app.post('/encrypt', async (req, res) => {
     }
 });
 
+// Decrypt endpoint
+app.post('/decrypt', async (req, res) => {
+    if (!req.files || Object.keys(req.files).length === 0) {
+        return res.status(400).send('No files were uploaded.');
+    }
+
+    try {
+        const fileToDecrypt = req.files.fileToDecrypt;
+        const keyString = req.body.keyString; // Replace with your secret key
+        const ivHex = req.body.ivHex;
+
+        // Create a unique filename for the decrypted file
+        const decryptedFileName = `decrypted-${fileToDecrypt.name}`;
+        const decryptedFilePath = path.join(__dirname, 'uploads', decryptedFileName);
+
+        // Decrypt the file
+        await biometricCrypt.decryptFile(keyString, ivHex, fileToDecrypt.data, decryptedFilePath);
+
+        // Send response with decrypted file path
+        res.sendFile(decryptedFilePath);
+    } catch (error) {
+        console.error('Decryption error:', error);
+        res.status(500).send('Decryption failed');
+    }
+});
+
 // Serve files from the 'uploads' directory for download
 app.use('/download', express.static(path.join(__dirname, 'uploads')));
 
