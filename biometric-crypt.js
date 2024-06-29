@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const fs = require('fs');
+const fs = require('fs').promises;
 
 // Generate a cryptographic key from a string (in place of biometric data)
 function generateKeyFromString(keyString) {
@@ -9,36 +9,24 @@ function generateKeyFromString(keyString) {
 }
 
 // Encrypt a file using AES-256-CBC
-async function encryptFile(key, fileData, outputFilePath) {
+async function encryptFile(key, filePath, outputFilePath) {
     const iv = crypto.randomBytes(16);
     const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
-    const output = fs.createWriteStream(outputFilePath);
+    const input = await fs.readFile(filePath);
+    const encrypted = Buffer.concat([cipher.update(input), cipher.final()]);
 
-    return new Promise((resolve, reject) => {
-        cipher.once('error', reject);
-        output.once('error', reject);
-        output.once('finish', () => resolve(iv.toString('hex')));
-
-        const input = Buffer.from(fileData, 'binary');
-        cipher.write(input);
-        cipher.end();
-    });
+    await fs.writeFile(outputFilePath, Buffer.concat([iv, encrypted]));
+    return iv.toString('hex');
 }
 
 // Decrypt a file using AES-256-CBC
 async function decryptFile(key, ivHex, filePath, outputFilePath) {
     const iv = Buffer.from(ivHex, 'hex');
     const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
-    const input = fs.createReadStream(filePath);
-    const output = fs.createWriteStream(outputFilePath);
+    const encrypted = await fs.readFile(filePath);
+    const decrypted = Buffer.concat([decipher.update(encrypted.slice(16)), decipher.final()]);
 
-    return new Promise((resolve, reject) => {
-        decipher.once('error', reject);
-        output.once('error', reject);
-        output.once('finish', resolve);
-
-        input.pipe(decipher).pipe(output);
-    });
+    await fs.writeFile(outputFilePath, decrypted);
 }
 
 module.exports = {

@@ -33,13 +33,7 @@
                 }
 
                 const result = await response.json();
-                const { ivHex, encryptedFilePath } = result;
-
-                document.getElementById('encryptionResult').innerHTML = `
-                    <p>Encryption successful!</p>
-                    <p>IV (Initialization Vector): ${ivHex}</p>
-                    <p>Encrypted File: <a href="${encryptedFilePath}" download>Download</a></p>
-                `;
+                document.getElementById('encryptionResult').innerText = `Encryption successful!\nIV: ${result.ivHex}\nEncrypted File: ${result.encryptedFilePath}`;
             } catch (error) {
                 console.error('Encryption error:', error);
                 document.getElementById('encryptionResult').innerText = 'Encryption failed';
