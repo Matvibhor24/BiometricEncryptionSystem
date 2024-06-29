@@ -9,11 +9,9 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware for file uploads
 app.use(fileUpload());
-
-// Serve the HTML file
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Decrypt endpoint
 app.post('/decrypt', (req, res) => {
@@ -47,6 +45,10 @@ app.post('/decrypt', (req, res) => {
     });
 });
 
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+// Encrypt endpoint
+app.post('/encrypt', (req, res) => {
+    if (!req.files || Object.keys(req.files).length === 0) {
+        return res.status(400).send('No files were uploaded.');
+    }
+
+   

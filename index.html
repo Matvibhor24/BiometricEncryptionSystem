@@ -1,20 +1,29 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Decrypt File</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Encrypt/Decrypt</title>
 </head>
 <body>
-    <form action="https://your-app.onrender.com/decrypt" method="post" enctype="multipart/form-data">
-        <label for="encryptedFile">Upload Encrypted File:</label>
-        <input type="file" id="encryptedFile" name="encryptedFile" required><br><br>
-
-        <label for="ivHex">Initialization Vector (IV):</label>
-        <input type="text" id="ivHex" name="ivHex" required><br><br>
-
-        <label for="keyString">Key String:</label>
-        <input type="text" id="keyString" name="keyString" required><br><br>
-
-        <input type="submit" value="Decrypt File">
+    <h1>File Decryption</h1>
+    <form id="decryptForm" action="/decrypt" method="post" enctype="multipart/form-data">
+        <input type="file" name="encryptedFile" required>
+        <input type="text" name="ivHex" placeholder="IV Hex" required>
+        <input type="text" name="keyString" placeholder="Key String" required>
+        <button type="submit">Decrypt File</button>
     </form>
+
+    <h1>File Encryption</h1>
+    <form id="encryptForm" action="/encrypt" method="post" enctype="multipart/form-data">
+        <input type="file" name="fileToEncrypt" required>
+        <input type="text" name="keyString" placeholder="Key String" required>
+        <button type="submit">Encrypt File</button>
+    </form>
+
+    <div id="encryptionResult" style="display: none;">
+        <p><strong>IV:</strong> <span id="iv"></span></p>
+        <p><strong>Encrypted File:</strong> <a id="encryptedFileLink" href="#" download>Download</a></p>
+    </div>
 </body>
 </html>

@@ -28,18 +28,4 @@ function encryptFile(key, filePath, outputFilePath) {
 function decryptFile(key, ivHex, filePath, outputFilePath) {
     const iv = Buffer.from(ivHex, 'hex');
     const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
-    const input = fs.createReadStream(filePath);
-    const output = fs.createWriteStream(outputFilePath);
-
-    input.pipe(decipher).pipe(output);
-
-    output.on('finish', () => {
-        console.log('File decrypted successfully.');
-    });
-}
-
-module.exports = {
-    generateKeyFromString,
-    encryptFile,
-    decryptFile
-};
+    const input = fs.createRead
